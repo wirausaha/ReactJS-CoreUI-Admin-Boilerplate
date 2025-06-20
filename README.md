@@ -22,6 +22,19 @@ Halaman yang sudah disiapkan :
 
 Jika ada bagian-bagian yang error silahkan report :) 
 
+Cara instalasi : 
+- Masuk ke folder utama aplikasi lalu jalankan : npm install
+- Ubah parameter pada vite.config.mjs sesuai dengan lokasi API server anda
+            target: "http://localhost:5132",
+- Untuk koneksi menggunakan axios, ubah file .env.local agar sesuai dengan target API Server anda
+      VITE_BASE_URL = http://localhost:5132
+      VITE_API_URL = http://localhost:5132/api
+      VITE_AUTH_URL = http://localhost:5132/auth
+- pastikan server API server sudah siap 
+- lalu eksekusi dengan : npm start atau npm run start --force
+
+
+
 Semoga bermanfaat
 
 
