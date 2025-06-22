@@ -52,7 +52,7 @@ apiInstance.interceptors.response.use(
         try {
           const rememberme = localStorage.getItem("rememberme") ?? "false";
           const rem = (rememberme === "true") ? true : false;
-          const refreshResponse = await axios.post("http://localhost:5230/api/auth/refreshtoken", {
+          const refreshResponse = await authApi.post("http://localhost:5230/api/auth/refreshtoken", {
             accessToken: localStorage.getItem("token") ?? "",
             refreshToken: localStorage.getItem("refreshtoken") ?? "",
             rememberme: rem,

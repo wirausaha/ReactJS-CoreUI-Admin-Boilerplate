@@ -308,17 +308,17 @@ const Users = () => {
     setEmail("");
     setPassword("");
     setDateOfBirth(event.dateOfBirth ?? new Date().toISOString().split("T")[0]);
-    setUserName(event.userName);
-    setFirstName(event.firstName);
-    setLastName(event.lastName);
-    setAddress(event.address);
-    setAddress2(event.address2);
-    setProvince(event.province);
-    setCity(event.city);
-    setZipCode(event.zipCode);
+    setUserName(event.userName ?? "");
+    setFirstName(event.firstName ?? "");
+    setLastName(event.lastName ?? "");
+    setAddress(event.address ?? "");
+    setAddress2(event.address2 ?? "");
+    setProvince(event.province ?? "");
+    setCity(event.city ?? "");
+    setZipCode(event.zipCode ?? "");
     setUserRole(event.userRole ?? "Operator");
-    setAvatar200x200(event.avatar200x200);
-
+    setAvatar200x200(event.avatar200x200 ?? "");
+    console.log( event.avatar200x200);
     setProfile({
         name: event.firstName + " " + event.lastName,
         email: event.userName,
@@ -520,12 +520,7 @@ const Users = () => {
           );
         } else {
           console.log("Lagi nambah");
-          setData((prevData) => [
-            ...prevData,
-            { avatar200x200: dataUser.avatar200x200, userName: dataUser.userName,
-                    firstName: dataUser.firstName, lastName: dataUser.lastName,
-                    userRole: dataUser.userRole },
-          ]);
+          setData((prevData) => [...prevData, { ...dataUser }]);
         }
         // Reset input
         handleCancel();
@@ -580,7 +575,7 @@ const Users = () => {
                     <div style={{display: isOveriding ? "block" : "none", marginBottom: "10px" }}>
                       <CRow>
                         <CCol xs={12}>
-                          <CFormLabel htmlFor="inputAddress">Overide password pengguna</CFormLabel>
+                          <CFormLabel htmlFor="inputAddress">Overide password pengguna : <span style={{fontWeight: 'bold'}}>{userName}</span></CFormLabel>
                           <CFormInput id="inputOveridePassword" placeholder=""
                             type="text"
                             value={overidePassword} onChange={(e) => setOveridePassword(e.target.value)}
@@ -708,43 +703,46 @@ const Users = () => {
                         </CCol>
                       </CRow>
                     </div>
-                    <table className="table table-small table-bordered table-hover">
-                      <CTableHead color="light">
-                        {table.getHeaderGroups().map(headerGroup => (
-                          <tr key={headerGroup.id}>
-                            {headerGroup.headers.map(header => (
-                              <th key={header.id}>
-                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                              </th>
-                            ))}
-                          </tr>
-                        ))}
-                      </CTableHead>
-                      <tbody>
-                        {table
-                          .getRowModel()
-                          .rows.slice(0, limit)
-                          .map(row => {
-                            return (
-                              <tr
-                                key={row.id} onClick={(event) => setSelectedRow(event.currentTarget)}
-                                style={{cursor: "pointer"}}
-                                >
-                                  {row.getVisibleCells().map(cell => {
-                                  return (
-                                    <td key={cell.id} onClick={() => {
-                                    handleRowClick(cell.row.original); }} style={{ cursor: "pointer" }}>
-                                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                    </td>
-                                  )
-                                })}
-                              </tr>
-                            )
-                          })}
-                      </tbody>
-                    </table>
+                    <div style={{display: isEditing || isOveriding ? "none" : "block"}}>
+                      <table className="table table-small table-bordered table-hover" >
+                        <CTableHead color="light">
+                          {table.getHeaderGroups().map(headerGroup => (
+                            <tr key={headerGroup.id}>
+                              {headerGroup.headers.map(header => (
+                                <th key={header.id}>
+                                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                </th>
+                              ))}
+                            </tr>
+                          ))}
+                        </CTableHead>
+                        <tbody>
+                          {table
+                            .getRowModel()
+                            .rows.slice(0, limit)
+                            .map(row => {
+                              return (
+                                <tr
+                                  key={row.id} onClick={(event) => setSelectedRow(event.currentTarget)}
+                                  style={{cursor: "pointer"}}
+                                  >
+                                    {row.getVisibleCells().map(cell => {
+                                    return (
+                                      <td key={cell.id} onClick={() => {
+                                      handleRowClick(cell.row.original); }} style={{ cursor: "pointer" }}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                      </td>
+                                    )
+                                  })}
+                                </tr>
+                              )
+                            })}
+                        </tbody>
+                      </table>
 
-                    <PaginationComponent page={page} setPage={setPage} maxPage={maxPage} pagesPerGroup={10} />
+                      <PaginationComponent page={page} setPage={setPage} maxPage={maxPage} pagesPerGroup={10} />
+                    </div>
+
 
                 </CCardBody>
               </CCard>
