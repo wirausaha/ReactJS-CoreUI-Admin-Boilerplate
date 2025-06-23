@@ -10,6 +10,10 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import usePagination from "../../hooks/usePagination";
 import { debounce, set } from "lodash"; // membatasi waktu pengetikan
+import UserProfileForm from "./UserProfile";
+import FormToolbar from "./FormToolbar";
+import OverridePassword from "./OveridePassword";
+import UserTable from "./UserTable"
 
 
 import {  CButton,  CCard,   CCardBody,   CCol,
@@ -44,8 +48,9 @@ import PaginationComponent from '../../components/PaginationComponent';
 // Column Definitions
 const columnHelper = createColumnHelper()
 
-import {  FaTrash, FaUnlock } from "react-icons/fa"; // Contoh menggunakan react-icons
+import {  FaEye, FaTrash, FaUnlock } from "react-icons/fa"; // Contoh menggunakan react-icons
 import { CCardGroup, CCardHeader, CCardTitle, CCardText } from '@coreui/react'
+//import UserTable from './UserTable';
 
 const Users = () => {
 
@@ -73,6 +78,7 @@ const Users = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isOveriding, setIsOveriding] = useState(false);
+  const [isViewProfile, setIsViewProfile] = useState(false);
   const [overidePassword, setOveridePassword] = useState("");
 
   const [data, setData] = useState(() => defaultData)
@@ -100,6 +106,10 @@ const Users = () => {
       });
       setIsAvatarChanged(true);
     }
+  };
+
+  const handleViewProfile = (userName) => {
+      setIsViewProfile(true);
   };
 
   /* ======================================
@@ -155,12 +165,17 @@ const Users = () => {
       cell: (info) => (
         <>
         <button onClick={() => handleDeleteRow(info.row.original.userName)}
-          style={{ background: "none", border: "none", cursor: "pointer" }}
+          title="Hapus Pengguna" style={{ background: "none", border: "none", cursor: "pointer" }}
         >
           <FaTrash size={20} color="gray" />
         </button>
+        <button onClick={() => handleViewProfile(info.row.original.userName)}
+          title="Lihat profil" style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
+          <FaEye size={20} color="gray" />
+        </button>
         <button onClick={() => handleOveridePassword(info.row.original.userName)}
-          style={{ background: "none", border: "none", cursor: "pointer" }}
+          title="Overide (ganti) password" style={{ background: "none", border: "none", cursor: "pointer" }}
         >
           <FaUnlock size={20} color="gray" />
         </button>
@@ -305,6 +320,7 @@ const Users = () => {
 
 
   const handleRowClick = (event) => {
+    // saat 1 baris data di klik masukan datanya ke masing-masing elemen
     setEmail("");
     setPassword("");
     setDateOfBirth(event.dateOfBirth ?? new Date().toISOString().split("T")[0]);
@@ -318,14 +334,18 @@ const Users = () => {
     setZipCode(event.zipCode ?? "");
     setUserRole(event.userRole ?? "Operator");
     setAvatar200x200(event.avatar200x200 ?? "");
-    console.log( event.avatar200x200);
-    setProfile({
-        name: event.firstName + " " + event.lastName,
-        email: event.userName,
-        photo: event.avatar200x200,
-        preview: `${import.meta.env.VITE_BASE_URL}${event.avatar200x200}` });
-
-    setIsEditing(false); //  Aktifkan kembali input agar bisa diedit
+      setProfile({
+          name: event.firstName + " " + event.lastName,
+          email: event.userName,
+          photo: event.avatar200x200,
+          preview: `${import.meta.env.VITE_BASE_URL}${event.avatar200x200}` });
+    // Pengecekan status ini dilakukan untuk mengurang flicker
+    // karena setiap kali mengubah status sepertinya ReactJS merefresh layar
+    // Tetapi pengecekan ini kurang bermanfaat pada baris data yang tidak memiliki avatar
+    if (isEditing) setIsEditing(false); //  Aktifkan kembali input agar bisa diedit
+    if (isOveriding) setIsOveriding(false);
+    if (isAdding) setIsAdding(false);
+    if (isViewProfile) setIsViewProfile(false);
     setSelectedItem( event);
     setSelectedRow(event.index); // Simpan ID baris yang diklik
   };
@@ -361,6 +381,7 @@ const Users = () => {
           preview: `${import.meta.env.VITE_BASE_URL}${selectedItem.avatar200x200}`,
           avatarFile: null
         });
+        setIsViewProfile(false);
 
       }
       setUserName("");
@@ -398,6 +419,7 @@ const Users = () => {
     setIsEditing(true);
     setIsOveriding(false);
     setIsAvatarChanged(false);
+    setIsViewProfile(false);
   };
 
   const handleOveridePassword = async () =>
@@ -512,9 +534,7 @@ const Users = () => {
           setData((prevData) =>
             prevData.map((unit) =>
               unit.userName === dataUser.userName
-                ? { avatar200x200: dataUser.avatar200x200, userName: saveUserName,
-                    firstName: dataUser.firstName, lastName: dataUser.lastName,
-                    userRole: dataUser.userRole }
+                ? { ...unit, ...dataUser, userName: saveUserName }
                 : unit
             )
           );
@@ -545,203 +565,74 @@ const Users = () => {
               Daftar Pengguna
             </h4>
           </CCol>
-          <CCol sm={7} className="d-none d-md-block">
-            <CButton color="primary" className="float-end">
-              <CIcon icon={cilCloudDownload} />
-            </CButton>
-          </CCol>
         </CRow>
         <CRow className="mt-2" >
           <div className="row">
             <div className="col-md-12">
               <CCard className="mb-4">
                 <CCardBody className="p-4">
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "10px",  alignItems: "center", marginBottom: "10px" }}>
-                      <div style={{ display: isEditing || isOveriding ? "none" : "flex", gap: "10px" }}>
-                        <CButton className="rounded-0" color="primary" id="btnAdd" style={{ width: "120px" }}
-                          onClick={() => handleAddNew()} >
-                          <CIcon icon={cilPlus} style={{ marginRight: "5px" }} /> Tambah
-                        </CButton>
-                        <CButton
-                          className="rounded-0" color="primary" id="btnEdit" style={{ width: "120px" }} disabled={selectedItem == null}
-                          onClick={() => handleEdit()} >
-                          <CIcon icon={cilPencil} style={{ marginRight: "5px" }} /> Ubah
-                        </CButton>
-                      </div>
-                      <div>
-                        <input style={{display: isEditing || isOveriding ? "none" : "block" }} maxLength="32" type="text" placeholder="Filter Username" onChange={handleSearch} />
-                      </div>
-                    </div>
-                    <div style={{display: isOveriding ? "block" : "none", marginBottom: "10px" }}>
-                      <CRow>
-                        <CCol xs={12}>
-                          <CFormLabel htmlFor="inputAddress">Overide password pengguna : <span style={{fontWeight: 'bold'}}>{userName}</span></CFormLabel>
-                          <CFormInput id="inputOveridePassword" placeholder=""
-                            type="text"
-                            value={overidePassword} onChange={(e) => setOveridePassword(e.target.value)}
-                            maxLength={32}/>
-                        </CCol>
-                      </CRow>
-                      <CRow style={{marginTop: "10px"}}>
-                        <CCol xs={12}>
-                          <div style={{ display: ! isOveriding  ? "none" : "flex", gap: "10px" }}>
-                              <CButton className="rounded-0" color="primary" id="btnSaveOveride" style={{ width: "120px" }}
-                                onClick={() => handleSavePassword()} >
-                                <CIcon icon={cilSave} style={{ marginRight: "5px" }} /> Simpan
-                              </CButton>
-                              <CButton
-                                className="rounded-0" color="primary" id="btnCancelOveride" style={{ width: "120px" }}
-                                onClick={() => handleCancel()} >
-                                <CIcon icon={cilActionUndo} style={{ marginRight: "5px" }} /> Batal
-                              </CButton>
-                          </div>
-                        </CCol>
-                      </CRow>
-                    </div>
-                    <div style={{display: isEditing ? "block" : "none", marginBottom: "10px" }}>
-                      <CRow>
-                        <CCol xs={12}>
-                          <CCard className="mb-4">
-                            <CCardBody>
-                                <CForm className="row g-3">
-                                  <CCol md={12}>
-                                        {profile.preview && <CImage src={profile.preview} alt="Preview" style={{display: 'block', width: '200px', height: '200px', marginBottom: '10px', border: '1px solid #ccc'}} className="img-thumbnail mt-2" width={200} />}
-                                      <CFormLabel htmlFor="photo">Foto Profil</CFormLabel>
-                                      <CFormInput type="file" id="avatarFile" name="avatarFile" accept="image/*" onChange={handleFileChange} />
-                                  </CCol>
-                                  <CCol md={4} style={{display: isAdding ? "block" : "none" }}>
-                                    <CFormLabel htmlFor="inputUsername">Username</CFormLabel>
-                                    <CFormInput type="text" id="inputUsername"
-                                      value={userName} onChange={(e) => setUserName(e.target.value)}
-                                      maxLength={32} />
-                                  </CCol>
-                                  <CCol md={4} style={{display: isAdding ? "block" : "none" }}>
-                                    <CFormLabel htmlFor="inputPassword">Password</CFormLabel>
-                                    <CFormInput type="password" id="inputPassword"
-                                      value={password} onChange={(e) => setPassword(e.target.value)}
-                                      maxLength={32} />
-                                  </CCol>
-                                  <CCol md={4} style={{display: isAdding ? "block" : "none" }}>
-                                    <CFormLabel htmlFor="inputEmail">Email</CFormLabel>
-                                    <CFormInput type="text" id="inputEmail"
-                                      value={email} onChange={(e) => setEmail(e.target.value)}
-                                      maxLength={32} />
-                                  </CCol>
-                                  <CCol md={6} >
-                                    <CFormLabel htmlFor="dateOfBirth">Tanggal lahir</CFormLabel>
-                                    <input type="date" className="form-control" id="dateOfBirth"
-                                      value={dateOfBirth || ""} onChange={(e) => setDateOfBirth(e.target.value)}
-                                       name="dateOfBirth"></input>
-                                  </CCol>
-                                  <CCol md={6} >
-                                    <CFormLabel htmlFor="userRole">Role</CFormLabel>
-                                    <CFormSelect
-                                      id="userRole"
-                                        options={roleOptions}
-                                        value={userRole || ""}
-                                        onChange={(e) => setUserRole(e.target.value)}
-                                      />
-                                  </CCol>
-                                  <CCol md={6}>
-                                    <CFormLabel htmlFor="inputFirstName">Nama depan</CFormLabel>
-                                    <CFormInput type="text" id="inputFirstName"
-                                      value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                                      maxLength={32} />
-                                  </CCol>
-                                  <CCol md={6}>
-                                    <CFormLabel htmlFor="inputLastName">Nama belakang</CFormLabel>
-                                    <CFormInput type="text" id="inputLastName"
-                                      value={lastName} onChange={(e) => setLastName(e.target.value)}
-                                      maxLength={32}/>
-                                  </CCol>
-                                  <CCol xs={6}>
-                                    <CFormLabel htmlFor="inputAddress">Alamat</CFormLabel>
-                                    <CFormInput id="inputAddress" placeholder=""
-                                      value={address} onChange={(e) => setAddress(e.target.value)}
-                                      maxLength={40}/>
-                                  </CCol>
-                                  <CCol xs={6}>
-                                    <CFormLabel htmlFor="inputAddress">Alamat 2</CFormLabel>
-                                    <CFormInput id="inputAddress2" placeholder=""
-                                      value={address2} onChange={(e) => setAddress2(e.target.value)}
-                                      maxLength={40} />
-                                  </CCol>
-                                  <CCol md={6}>
-                                    <CFormLabel htmlFor="inputCity">Kota</CFormLabel>
-                                    <CFormInput id="inputCity"
-                                      value={city}  onChange={(e) => setCity(e.target.value)}
-                                      maxLength={20}/>
-                                  </CCol>
-                                  <CCol md={4}>
-                                    <CFormLabel htmlFor="inputProvince">Propinsi</CFormLabel>
-                                    <CFormInput id="inputProvince" placeholder="Propinsi"
-                                      value={province} onChange={(e) => setProvince(e.target.value)}
-                                      maxLength={20}/>
-                                  </CCol>
-                                  <CCol md={2}>
-                                    <CFormLabel htmlFor="inputZip">Kode Pos</CFormLabel>
-                                    <CFormInput id="inputZip"
-                                      value={zipCode} onChange={(e) => setZipCode(e.target.value)}
-                                      maxLength={5} />
-                                  </CCol>
-                                  <CCol xs={12}>
-                                    <div style={{ display: ! isEditing ? "none" : "flex", gap: "10px" }}>
-                                      <CButton className="rounded-0" color="primary" id="btnSave" style={{ width: "120px" }}
-                                        onClick={() => handleAddRow()} >
-                                        <CIcon icon={cilSave} style={{ marginRight: "5px" }} /> Simpan
-                                      </CButton>
-                                      <CButton
-                                        className="rounded-0" color="primary" id="btnCancel" style={{ width: "120px" }}
-                                        onClick={() => handleCancel()} >
-                                        <CIcon icon={cilActionUndo} style={{ marginRight: "5px" }} /> Batal
-                                      </CButton>
-                                    </div>
-                                  </CCol>
-                                </CForm>
-                            </CCardBody>
-                          </CCard>
-                        </CCol>
-                      </CRow>
-                    </div>
-                    <div style={{display: isEditing || isOveriding ? "none" : "block"}}>
-                      <table className="table table-small table-bordered table-hover" >
-                        <CTableHead color="light">
-                          {table.getHeaderGroups().map(headerGroup => (
-                            <tr key={headerGroup.id}>
-                              {headerGroup.headers.map(header => (
-                                <th key={header.id}>
-                                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                </th>
-                              ))}
-                            </tr>
-                          ))}
-                        </CTableHead>
-                        <tbody>
-                          {table
-                            .getRowModel()
-                            .rows.slice(0, limit)
-                            .map(row => {
-                              return (
-                                <tr
-                                  key={row.id} onClick={(event) => setSelectedRow(event.currentTarget)}
-                                  style={{cursor: "pointer"}}
-                                  >
-                                    {row.getVisibleCells().map(cell => {
-                                    return (
-                                      <td key={cell.id} onClick={() => {
-                                      handleRowClick(cell.row.original); }} style={{ cursor: "pointer" }}>
-                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                      </td>
-                                    )
-                                  })}
-                                </tr>
-                              )
-                            })}
-                        </tbody>
-                      </table>
+                  {/* Tool bar untuk interaksi */}
+                  <FormToolbar
+                      isEditing={isEditing}
+                      isOveriding={isOveriding}
+                      isViewProfile={isViewProfile}
+                      handleAddNew={handleAddNew}
+                      handleEdit={handleEdit}
+                      selectedItem={selectedItem}
+                      handleSearch={handleSearch}
+                    />
+                  <OverridePassword
+                    isOveriding={isOveriding}
+                    userName={userName}
+                    overidePassword={overidePassword}
+                    setOveridePassword={setOveridePassword}
+                    handleSavePassword={handleSavePassword}
+                    handleCancel={handleCancel}
+                  />
+                  <UserProfileForm
+                    isEditing={isEditing}
+                    isAdding={isAdding}
+                    isViewProfile={isViewProfile}
+                    profile={profile}
+                    userName={userName}
+                    setUserName={setUserName}
+                    password={password}
+                    setPassword={setPassword}
+                    email={email}
+                    setEmail={setEmail}
+                    dateOfBirth={dateOfBirth}
+                    setDateOfBirth={setDateOfBirth}
+                    userRole={userRole}
+                    setUserRole={setUserRole}
+                    roleOptions={roleOptions}
+                    firstName={firstName}
+                    setFirstName={setFirstName}
+                    lastName={lastName}
+                    setLastName={setLastName}
+                    address={address}
+                    setAddress={setAddress}
+                    address2={address2}
+                    setAddress2={setAddress2}
+                    city={city}
+                    setCity={setCity}
+                    province={province}
+                    setProvince={setProvince}
+                    zipCode={zipCode}
+                    setZipCode={setZipCode}
+                    handleAddRow={handleAddRow}
+                    handleCancel={handleCancel}
+                    handleFileChange={handleFileChange}
+                  />
 
-                      <PaginationComponent page={page} setPage={setPage} maxPage={maxPage} pagesPerGroup={10} />
-                    </div>
+                  <UserTable
+                    table={table}
+                    limit={limit}
+                    setSelectedRow={setSelectedRow}
+                    handleRowClick={handleRowClick}
+                    page={page}
+                    setPage={setPage}
+                    maxPage={maxPage}
+                  />
 
 
                 </CCardBody>
