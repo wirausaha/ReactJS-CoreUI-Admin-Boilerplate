@@ -20,9 +20,8 @@ import PaginationComponent from '../../components/PaginationComponent';
 const columnHelper = createColumnHelper()
 import { CTableHead } from '@coreui/react'
 
-const UserTable = ({ table, limit, setSelectedRow, handleRowClick, page, setPage, maxPage }) => {
-  const showTable = !(table.options.state?.isEditing || table.options.state?.isOveriding || table.options.state?.isViewProfile);
-
+const UserTable = ({ isOveriding, isEditing, isViewProfile, table, limit, setSelectedRow, handleRowClick, page, setPage, maxPage }) => {
+  const showTable = ! (isEditing || isOveriding || isViewProfile);
   if (!showTable) return null;
 
   return (

@@ -625,6 +625,10 @@ const Users = () => {
                   />
 
                   <UserTable
+                    isEditing={isEditing}
+                    isOveriding={isOveriding}
+                    isViewProfile={isViewProfile}
+                    isAdding={isAdding}
                     table={table}
                     limit={limit}
                     setSelectedRow={setSelectedRow}
