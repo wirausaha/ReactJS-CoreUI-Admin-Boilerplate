@@ -49,16 +49,19 @@ import PaginationComponent from '../../components/PaginationComponent';
 const columnHelper = createColumnHelper()
 
 import {  FaEye, FaTrash, FaUnlock } from "react-icons/fa"; // Contoh menggunakan react-icons
-import { CCardGroup, CCardHeader, CCardTitle, CCardText } from '@coreui/react'
-//import UserTable from './UserTable';
+
+import { Navigate } from "react-router-dom";
+import { checkUserRole } from "../../helpers/CheckRole";
 
 const Users = () => {
+
+  const [role, setRole] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token") ?? ""; // Ambil token dari localStorage
   const location = useLocation();
   const navigate = useNavigate();
 
-  // States
 
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
@@ -71,7 +74,7 @@ const Users = () => {
   const [province, setProvince] = useState("");
   const [city, setCity] = useState("");
   const [zipCode, setZipCode] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState(new Date().toISOString().split("T"));
+  const [dateOfBirth, setDateOfBirth] = useState(new Date().toISOString().split("T")[0]);
   const [avatar200x200, setAvatar200x200] = useState("");
   const [userRole, setUserRole] = useState("Operator");
 
@@ -80,6 +83,7 @@ const Users = () => {
   const [isOveriding, setIsOveriding] = useState(false);
   const [isViewProfile, setIsViewProfile] = useState(false);
   const [overidePassword, setOveridePassword] = useState("");
+  const isAdminMode = true;
 
   const [data, setData] = useState(() => defaultData)
 
@@ -87,7 +91,6 @@ const Users = () => {
   const [selectedRow, setSelectedRow] = useState(0);
   const [selectedItem, setSelectedItem] = useState(null);
   const [filterUser, setFilterUser] = useState("");
-
   const [profile, setProfile] = useState({
       name: "",
       email: "",
@@ -555,6 +558,18 @@ const Users = () => {
 
   };
 
+  useEffect(() => {
+    const verifyRole = async () => {
+      const userRole = await checkUserRole();
+      setRole(userRole);
+      setLoading(false);
+    };
+    verifyRole();
+  }, []);
+
+  if (loading) return <p>Loading role...</p>;
+  if (role !== "Superuser") return <Navigate to="/unauthorized" replace />;
+
   return (
     <>
     <CCard className="mb-4">
@@ -590,6 +605,7 @@ const Users = () => {
                     handleCancel={handleCancel}
                   />
                   <UserProfileForm
+                    isAdminMode={isAdminMode}
                     isEditing={isEditing}
                     isAdding={isAdding}
                     isViewProfile={isViewProfile}

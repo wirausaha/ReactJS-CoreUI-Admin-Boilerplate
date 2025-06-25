@@ -21,13 +21,12 @@ const Register = React.lazy(() => import('./views/pages/register/Register'))
 
 const Page404 = React.lazy(() => import('./views/pages/page404/Page404'))
 const Page500 = React.lazy(() => import('./views/pages/page500/Page500'))
+const Unauthorized = React.lazy(() => import('./views/pages/unauthorize/Unauthorize'))
 
 const App = () => {
 
   const token = localStorage.getItem("token") ?? false; // Ambil token dari localStorage
   const tokenValid = isTokenValid(token); // Cek apakah token valid
-
-
 
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
   const storedTheme = useSelector((state) => state.theme)
@@ -45,34 +44,40 @@ const App = () => {
     setColorMode(storedTheme)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const RoleGuard = ({ allowedRole, children }) => {
+    const { role, loading } = useUserRole();
 
+    if (loading) return <p>Loading...</p>;
+    if (role !== allowedRole) return <Navigate to="/unauthorized" />;
+
+    return children;
+  };
 
   return (
     <AuthProvider>
+        <BrowserRouter>
+          <Suspense
+            fallback={
+              <div className="pt-3 text-center">
+                <CSpinner color="primary" variant="grow" />
+              </div>
+            }
+          >
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/404" element={<Page404 />} />
+            <Route path="/500" element={<Page500 />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
 
-    <BrowserRouter>
-      <Suspense
-        fallback={
-          <div className="pt-3 text-center">
-            <CSpinner color="primary" variant="grow" />
-          </div>
-        }
-      >
+            {/* Semua halaman lain hanya bisa diakses jika token valid */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="*" element={<DefaultLayout />} />
+            </Route>
+          </Routes>
 
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/404" element={<Page404 />} />
-        <Route path="/500" element={<Page500 />} />
-
-        {/* Semua halaman lain hanya bisa diakses jika token valid */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="*" element={<DefaultLayout />} />
-        </Route>
-      </Routes>
-
-      </Suspense>
-    </BrowserRouter>
+          </Suspense>
+        </BrowserRouter>
     </AuthProvider>
 
   )

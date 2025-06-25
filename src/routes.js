@@ -43,7 +43,6 @@ const routes = [
 
   { path: '/profile', name: 'Profile', element: Profile },
   { path: '/users', name: 'Daftar-Pengguna', element: Users },
-
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/theme', name: 'Theme', element: Colors, exact: true },
   { path: '/theme/colors', name: 'Colors', element: Colors },

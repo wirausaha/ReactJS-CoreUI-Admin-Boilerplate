@@ -11,7 +11,7 @@ import {
   CFormLabel,
 } from '@coreui/react'
 
-const PersonalFields = ({ isAdminMode, isViewProfile, dateOfBirth, setDateOfBirth,
+const PersonalProfile = ({ isViewProfile, dateOfBirth, setDateOfBirth,
           roleOptions, userRole, setUserRole,
           firstName, setFirstName, lastName, setLastName }) => (
   <>
@@ -27,17 +27,7 @@ const PersonalFields = ({ isAdminMode, isViewProfile, dateOfBirth, setDateOfBirt
         onChange={(e) => setDateOfBirth(e.target.value)}
       />
     </CCol>
-    <CCol md={6} style={{display: isAdminMode ? "none" : "block"}}></CCol>
-    <CCol md={6} style={{display: isAdminMode ? "block" : "none"}}>
-      <CFormLabel htmlFor="userRole">Role</CFormLabel>
-      <CFormSelect
-        id="userRole"
-        disabled={isViewProfile}
-        options={roleOptions}
-        value={userRole || ""}
-        onChange={(e) => setUserRole(e.target.value)}
-      />
-    </CCol>
+    <CCol ms={6}></CCol>
     <CCol md={6}>
       <CFormLabel htmlFor="inputFirstName">Nama depan</CFormLabel>
       <CFormInput

@@ -5,15 +5,7 @@
 |   Lisensi : Freeware
 ========================================================*/
 
-import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table'
-import {  FaEye, FaTrash, FaUnlock } from "react-icons/fa"; // Contoh menggunakan react-icons
-import usePagination from "../../hooks/usePagination";
-import { debounce, set } from "lodash"; // membatasi waktu pengetikan
-
-import CIcon from '@coreui/icons-react'
-import { cilPlus, cilPencil, cilUser,  cilCloudDownload, cilSave, cilActionUndo } from '@coreui/icons'
-
-import defaultData from './id'
+import { createColumnHelper, flexRender} from '@tanstack/react-table'
 import PaginationComponent from '../../components/PaginationComponent';
 
 // Column Definitions
